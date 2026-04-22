@@ -18,26 +18,40 @@ class Orders extends CI_Controller
 
     public function index()
     {
-        $data['products'] = $this->Order_model->get_all();
+        $data['products'] = $this->Order_model->get_product();
         $this->load->view('User/index', $data);
     }
 
 
     public function store()
     {
-        $data = [
-            'product_id' => $this->input->post('product_select'),
-            'order_amount' => $this->input->post('product_select'),
-        ];
+        if ($this->input->post()) {
 
+            $product_id = $this->input->post('product_select');
+            $product = $this->Order_model->get_product($product_id);
 
-        echo '<pre>';
-        print_r($data);
-        die();
+            if (!$product) {
+                show_error('Invalid product selected');
+                return;
+            }
 
+            $data = [
+                'product_id'   => $product_id,
+                'order_amount' => $product->product_price,
+                'user_id'      => $this->session->userdata('user_id'),
+            ];
 
-        $this->Order_model->insert($data);
-        redirect('order_tbl');
+            $inserted = $this->Order_model->insert($data);
+
+            if ($inserted) {
+                $data['error'] = "Order placed successfully!";
+            } else {
+                $data['error'] = "Failed to place order";
+            }
+        }
+
+        $data['products'] = $this->Order_model->get_product();
+        $this->load->view('User/index', $data);
     }
 
     public function get_orders()

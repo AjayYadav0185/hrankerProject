@@ -8,19 +8,20 @@ class User extends CI_Controller
     {
         parent::__construct();
         $this->load->model('User_model');
+        $this->load->model('Order_model'); 
+        $this->load->library('form_validation');
+        $this->load->library('session');
     }
-
 
     public function index()
     {
-
         if (!$this->session->userdata('logged_in')) {
             $this->load->view('User/login');
         } else {
-            $this->load->view('User/index');
+            $data['products'] = $this->Order_model->get_product();
+            $this->load->view('User/index', $data);
         }
     }
-
 
     public function register()
     {
@@ -34,14 +35,14 @@ class User extends CI_Controller
             if ($this->form_validation->run() == TRUE) {
 
                 $data = [
-                    'name' => $this->input->post('name'),
-                    'email' => $this->input->post('email'),
+                    'name'     => $this->input->post('name'),
+                    'email'    => $this->input->post('email'),
                     'password' => password_hash($this->input->post('password'), PASSWORD_DEFAULT),
-                    'phone' => $this->input->post('phone')
+                    'phone'    => $this->input->post('phone'),
+                    'role_type'=> 'employee' 
                 ];
 
                 $this->User_model->register($data);
-
                 redirect('User/login');
             }
         }
@@ -51,21 +52,19 @@ class User extends CI_Controller
 
     public function login()
     {
-
-        // print_r($_POST);
-        // die();
         if ($this->input->post()) {
 
-            $email = $this->input->post('email');
-            $password = $this->input->post('password');
+            $email     = $this->input->post('email');
+            $password  = $this->input->post('password');
             $role_type = $this->input->post('role_type');
 
             $user = $this->User_model->getUserByEmail($email);
 
-            if ($user && password_verify($password, $user->password)) {
+            
+            if ($user && password_verify($password, $user->password) && $user->role_type == $role_type) {
 
                 $session_data = [
-                    'user_id' => $user->id,
+                    'user_id'   => $user->id,
                     'user_name' => $user->name,
                     'role_type' => $user->role_type,
                     'logged_in' => TRUE
@@ -75,7 +74,7 @@ class User extends CI_Controller
 
                 redirect('User/index');
             } else {
-                $data['error'] = "Invalid login credentials";
+                $data['error'] = "Invalid credentials or role mismatch";
                 $this->load->view('User/login', $data);
                 return;
             }

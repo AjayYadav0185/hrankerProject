@@ -69,14 +69,19 @@ class Order_model extends CI_Model
 
     public function get_product($id = null)
     {
-
         if ($id) {
-            return $this->db->select('')->where('order_tbl.id', $id)
+            return $this->db
+                ->select('*')
+                ->from('product')
+                ->where('id', $id)
                 ->get()
                 ->row();
         } else {
-            return $this->db->select('')->get()
-                ->row();
+            return $this->db
+                ->select('*')
+                ->from('product')
+                ->get()
+                ->result();
         }
     }
 }
