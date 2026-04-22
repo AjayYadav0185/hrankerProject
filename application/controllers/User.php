@@ -8,7 +8,7 @@ class User extends CI_Controller
     {
         parent::__construct();
         $this->load->model('User_model');
-        $this->load->model('Order_model'); 
+        $this->load->model('Order_model');
         $this->load->library('form_validation');
         $this->load->library('session');
     }
@@ -39,7 +39,7 @@ class User extends CI_Controller
                     'email'    => $this->input->post('email'),
                     'password' => password_hash($this->input->post('password'), PASSWORD_DEFAULT),
                     'phone'    => $this->input->post('phone'),
-                    'role_type'=> 'employee' 
+                    'role_type' => $this->input->post('role_type'),
                 ];
 
                 $this->User_model->register($data);
@@ -60,7 +60,7 @@ class User extends CI_Controller
 
             $user = $this->User_model->getUserByEmail($email);
 
-            
+
             if ($user && password_verify($password, $user->password) && $user->role_type == $role_type) {
 
                 $session_data = [

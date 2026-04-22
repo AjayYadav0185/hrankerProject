@@ -49,6 +49,10 @@
                     <div class="col">
                         <button class="btn btn-primary" id="submitBtn">Login</button>
                     </div>
+                    <a href="<?php echo base_url('User/register'); ?>" class="btn btn-danger btn-sm mt-3">
+                        Register
+                    </a>
+
 
                 </form>
             </div>

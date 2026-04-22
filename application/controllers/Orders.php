@@ -54,6 +54,7 @@ class Orders extends CI_Controller
         $this->load->view('User/index', $data);
     }
 
+
     public function get_orders()
     {
         $draw   = $this->input->post('draw');
@@ -61,31 +62,35 @@ class Orders extends CI_Controller
         $length = $this->input->post('length');
         $search = $this->input->post('search')['value'];
 
+        $from_date = $this->input->post('from_date');
+        $to_date   = $this->input->post('to_date');
 
-        $this->db->select('order_tbl.*, product.product_name, product.product_price, users.name as name, users.email, users.phone');
+        $this->db->select('order_tbl.*, product.product_name, users.name');
         $this->db->from('order_tbl');
         $this->db->join('product', 'product.id = order_tbl.product_id', 'left');
         $this->db->join('users', 'users.id = order_tbl.user_id', 'left');
 
+        
+        if (!empty($from_date) && !empty($to_date)) {
+            $this->db->where('DATE(order_tbl.created_at) >=', $from_date);
+            $this->db->where('DATE(order_tbl.created_at) <=', $to_date);
+        }
 
+        
         if (!empty($search)) {
             $this->db->group_start();
-            $this->db->or_like('product.product_name', $search);
+            $this->db->like('product.product_name', $search);
             $this->db->or_like('order_tbl.order_amount', $search);
             $this->db->group_end();
         }
 
-
         $totalFiltered = $this->db->count_all_results('', false);
-
 
         $this->db->limit($length, $start);
         $query = $this->db->get();
         $data = $query->result();
 
-
         $total = $this->db->count_all('order_tbl');
-
 
         echo json_encode([
             "draw" => intval($draw),
@@ -95,26 +100,36 @@ class Orders extends CI_Controller
         ]);
     }
 
+
     public function export_large()
     {
+        $from_date = $this->input->get('from_date');
+        $to_date   = $this->input->get('to_date');
 
         $writer = WriterEntityFactory::createXLSXWriter();
         $writer->openToBrowser("Order_large.xlsx");
 
-
-        $header = WriterEntityFactory::createRowFromArray(['Product Name', 'Order Amount', 'Created By']);
+        $header = WriterEntityFactory::createRowFromArray([
+            'Product Name',
+            'Order Amount',
+            'Created By'
+        ]);
         $writer->addRow($header);
 
-        $this->db->select('order_tbl.*, product.product_name, product.product_price, users.name as name, users.email, users.phone');
+        $this->db->select('order_tbl.*, product.product_name, users.name');
         $this->db->from('order_tbl');
         $this->db->join('product', 'product.id = order_tbl.product_id', 'left');
         $this->db->join('users', 'users.id = order_tbl.user_id', 'left');
 
+        
+        if (!empty($from_date) && !empty($to_date)) {
+            $this->db->where('DATE(order_tbl.created_at) >=', $from_date);
+            $this->db->where('DATE(order_tbl.created_at) <=', $to_date);
+        }
+
         $query = $this->db->get();
-        $data = $query->result();
 
-
-        foreach ($data as $row) {
+        foreach ($query->result() as $row) {
             $writer->addRow(
                 WriterEntityFactory::createRowFromArray([
                     $row->product_name,
