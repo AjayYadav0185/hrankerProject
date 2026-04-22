@@ -1,0 +1,8 @@
+{
+    "description": "School App (CodeIgniter 3)",
+    "require": {
+        "php": ">=7.4",
+        "phpoffice/phpspreadsheet": "^5.7",
+        "openspout/openspout": "3.7"
+    }
+}
